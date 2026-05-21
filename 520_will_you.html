@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>520 💕</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body {
+  height: 100%;
+  font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif;
+  background: #fff;
+  overflow: hidden;
+}
+#game {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  padding: 2rem 1.5rem;
+}
+
+/* 漂浮愛心 */
+.heart-particle {
+  position: absolute;
+  pointer-events: none;
+  font-size: 26px;
+  animation: floatUp 3s ease-in forwards;
+  z-index: 0;
+}
+@keyframes floatUp {
+  0%   { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
+  100% { opacity: 0; transform: translateY(-280px) scale(0.2) rotate(30deg); }
+}
+
+/* 主畫面 */
+#main-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  z-index: 1;
+}
+.ring {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: #FFF0F5;
+  border: 1.5px solid #F4C0D1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 76px;
+  margin-bottom: 2rem;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.07)} }
+
+.question {
+  font-size: 26px;
+  font-weight: 600;
+  color: #1a1a1a;
+  text-align: center;
+  margin-bottom: 0.6rem;
+  line-height: 1.4;
+}
+.sub {
+  font-size: 16px;
+  color: #888;
+  text-align: center;
+  margin-bottom: 3rem;
+  min-height: 1.6em;
+  transition: all 0.3s;
+}
+
+.btn-yes {
+  display: block;
+  width: 240px;
+  padding: 18px;
+  font-size: 19px;
+  font-weight: 600;
+  background: #F4C0D1;
+  color: #72243E;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  margin-bottom: 1.2rem;
+  transition: transform 0.1s, background 0.2s;
+  box-shadow: 0 4px 16px rgba(212,83,126,0.18);
+}
+.btn-yes:active { transform: scale(0.96); background: #ED93B1; }
+
+.btn-no {
+  position: absolute;
+  padding: 12px 24px;
+  font-size: 15px;
+  background: #f5f5f5;
+  color: #aaa;
+  border: 1px solid #e0e0e0;
+  border-radius: 50px;
+  cursor: pointer;
+}
+
+/* 成功畫面 */
+#success-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  padding: 2rem;
+  animation: popIn 0.6s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+@keyframes popIn { 0%{transform:scale(0.4);opacity:0} 100%{transform:scale(1);opacity:1} }
+
+.big-heart {
+  font-size: 120px;
+  margin-bottom: 2rem;
+  animation: heartBeat 0.7s ease infinite alternate;
+  line-height: 1;
+}
+@keyframes heartBeat { from{transform:scale(1)} to{transform:scale(1.12)} }
+
+.success-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 1rem;
+}
+.success-sub {
+  font-size: 18px;
+  color: #666;
+  line-height: 1.9;
+  margin-bottom: 1.5rem;
+}
+.counter {
+  font-size: 14px;
+  color: #bbb;
+  margin-top: 0.5rem;
+}
+</style>
+</head>
+<body>
+<div id="game">
+
+  <div id="main-content">
+    <div class="ring">💌</div>
+    <p class="question">我可以當你的 520 嗎？</p>
+    <p class="sub" id="subtitle">點擊下方按鈕告訴我你的答案 ✨</p>
+    <button class="btn-yes" onclick="sayYes()">💕 願意</button>
+    <button class="btn-no" id="noBtn" onmouseenter="runAway()" ontouchstart="runAway()">不願意</button>
+  </div>
+
+  <div id="success-screen">
+    <div class="big-heart">❤️</div>
+    <p class="success-title">我就知道！</p>
+    <p class="success-sub">謝謝你願意當我的 520 💕<br>我會一直好好珍惜你的</p>
+    <p class="counter" id="escape-count"></p>
+  </div>
+
+</div>
+
+<script>
+let noCount = 0;
+let noBtn = document.getElementById('noBtn');
+let gameDiv = document.getElementById('game');
+
+const funnyTexts = [
+  '你確定嗎？再想想 🥺',
+  '不要嘛 ～ 拜託啦',
+  '我會很傷心的 😢',
+  '再考慮一下下嘛',
+  '你的心怎麼那麼硬',
+  '我會一直追的 💨',
+  '按不到就認輸吧 😏',
+  '逃不掉的啦 ❤️',
+];
+
+function placeInitial() {
+  let gW = gameDiv.offsetWidth;
+  let gH = gameDiv.offsetHeight;
+  noBtn.style.left = (gW / 2 - noBtn.offsetWidth / 2) + 'px';
+  noBtn.style.top  = (gH / 2 + 80) + 'px';
+}
+
+function runAway() {
+  noCount++;
+  let gW = gameDiv.offsetWidth;
+  let gH = gameDiv.offsetHeight;
+  let bW = noBtn.offsetWidth;
+  let bH = noBtn.offsetHeight;
+  let x = Math.random() * (gW - bW - 20) + 10;
+  let y = Math.random() * (gH - bH - 20) + 10;
+  noBtn.style.left = x + 'px';
+  noBtn.style.top  = y + 'px';
+  let sub = document.getElementById('subtitle');
+  sub.textContent = noCount <= funnyTexts.length
+    ? funnyTexts[noCount - 1]
+    : '逃不掉的啦 ❤️';
+  spawnHearts(2);
+}
+
+function sayYes() {
+  spawnHearts(16);
+  setTimeout(() => {
+    document.getElementById('main-content').style.display = 'none';
+    let sc = document.getElementById('success-screen');
+    sc.style.display = 'flex';
+    if (noCount > 0) {
+      document.getElementById('escape-count').textContent =
+        '（不願意按鈕逃跑了 ' + noCount + ' 次 🐱）';
+    }
+    spawnHearts(20);
+  }, 300);
+}
+
+function spawnHearts(count) {
+  let emojis = ['❤️','💕','💖','🌸','✨','💗','🥰'];
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      let el = document.createElement('div');
+      el.className = 'heart-particle';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left = (Math.random() * 88 + 6) + '%';
+      el.style.top  = (Math.random() * 70 + 15) + '%';
+      gameDiv.appendChild(el);
+      setTimeout(() => el.remove(), 3200);
+    }, i * 60);
+  }
+}
+
+window.addEventListener('load', () => {
+  setTimeout(placeInitial, 80);
+});
+</script>
+</body>
+</html>
